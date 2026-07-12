@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Manage requests{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4"><i class="bi bi-clipboard-check brand-accent"></i> Manage requests</h1>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a href="{{ url_for('requests.manage') }}"
+     class="btn btn-sm {{ 'btn-warning' if not status_filter else 'btn-outline-warning' }}">
+    All <span class="badge text-bg-dark ms-1">{{ counts.values() | sum }}</span>
+  </a>
+  <a href="{{ url_for('requests.manage', status='pending') }}"
+     class="btn btn-sm {{ 'btn-warning' if status_filter == 'pending' else 'btn-outline-warning' }}">
+    Pending <span class="badge text-bg-dark ms-1">{{ counts.get('pending', 0) }}</span>
+  </a>
+  <a href="{{ url_for('requests.manage', status='served') }}"
+     class="btn btn-sm {{ 'btn-success' if status_filter == 'served' else 'btn-outline-success' }}">
+    Served <span class="badge text-bg-dark ms-1">{{ counts.get('served', 0) }}</span>
+  </a>
+  <a href="{{ url_for('requests.manage', status='cancelled') }}"
+     class="btn btn-sm {{ 'btn-secondary' if status_filter == 'cancelled' else 'btn-outline-secondary' }}">
+    Cancelled <span class="badge text-bg-dark ms-1">{{ counts.get('cancelled', 0) }}</span>
+  </a>
+</div>
+
+{% if requests %}
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Requester</th>
+          <th scope="col">Cocktail</th>
+          <th scope="col">Notes</th>
+          <th scope="col">Requested</th>
+          <th scope="col">Status</th>
+          <th scope="col">Set status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+          <tr>
+            <td>{{ req.user.name }}</td>
+            <td>
+              <a href="{{ url_for('cocktails.detail', cocktail_id=req.cocktail.id) }}">{{ req.cocktail.name }}</a>
+            </td>
+            <td class="text-body-secondary">{{ req.notes or "—" }}</td>
+            <td class="text-body-secondary">{{ req.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>
+              {% if req.status == 'pending' %}
+                <span class="badge text-bg-warning">Pending</span>
+              {% elif req.status == 'served' %}
+                <span class="badge text-bg-success">Served</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Cancelled</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1 flex-wrap">
+                <form method="post" action="{{ url_for('requests.update_status', request_id=req.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="pending">
+                  <button type="submit" class="btn btn-outline-warning btn-sm" {% if req.status == 'pending' %}disabled{% endif %}>
+                    Pending
+                  </button>
+                </form>
+                <form method="post" action="{{ url_for('requests.update_status', request_id=req.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="served">
+                  <button type="submit" class="btn btn-outline-success btn-sm" {% if req.status == 'served' %}disabled{% endif %}>
+                    Served
+                  </button>
+                </form>
+                <form method="post" action="{{ url_for('requests.update_status', request_id=req.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="cancelled">
+                  <button type="submit" class="btn btn-outline-secondary btn-sm" {% if req.status == 'cancelled' %}disabled{% endif %}>
+                    Cancelled
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-inbox brand-accent" style="font-size: 2.5rem;"></i>
+      <p class="mt-3 mb-0 text-body-secondary">No requests{% if status_filter %} with status "{{ status_filter }}"{% endif %} found.</p>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

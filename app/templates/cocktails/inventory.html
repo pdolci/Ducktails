@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Bar stock{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+  <h1 class="h3 mb-0"><i class="bi bi-box-seam brand-accent"></i> Bar stock</h1>
+  <a href="{{ url_for('cocktails.list') }}" class="btn btn-outline-light btn-sm">
+    <i class="bi bi-arrow-left"></i> Back to cocktails
+  </a>
+</div>
+<p class="text-body-secondary">
+  Mark an ingredient <strong>out of stock</strong> and every cocktail that needs it
+  is automatically hidden from customers and blocked for requests.
+</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4"><div class="card text-center"><div class="card-body py-3">
+    <div class="h4 mb-0">{{ total }}</div><div class="text-body-secondary small">Ingredients</div></div></div></div>
+  <div class="col-6 col-md-4"><div class="card text-center"><div class="card-body py-3">
+    <div class="h4 mb-0 {% if out_of_stock_count %}text-danger{% endif %}">{{ out_of_stock_count }}</div>
+    <div class="text-body-secondary small">Out of stock</div></div></div></div>
+  <div class="col-12 col-md-4"><div class="card text-center"><div class="card-body py-3">
+    <div class="h4 mb-0 {% if hidden_count %}text-warning{% endif %}">{{ hidden_count }}</div>
+    <div class="text-body-secondary small">Cocktails hidden by stock</div></div></div></div>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-8 col-sm-6 col-md-5">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search ingredient&hellip;">
+  </div>
+  <div class="col-4 col-sm-3 d-flex gap-2">
+    <button type="submit" class="btn btn-outline-light"><i class="bi bi-search"></i></button>
+    {% if q %}
+      <a href="{{ url_for('cocktails.inventory') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+    {% endif %}
+  </div>
+</form>
+
+{% if not ingredients %}
+  <div class="text-center py-5 text-body-secondary">
+    <i class="bi bi-inbox display-4 d-block mb-3"></i>
+    {% if q %}No ingredient matches “{{ q }}”.{% else %}No ingredients indexed yet.{% endif %}
+  </div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Ingredient</th>
+          <th class="text-center">Used in</th>
+          <th class="text-center">Status</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ing in ingredients %}
+          <tr class="{% if not ing.in_stock %}table-danger{% endif %}">
+            <td class="fw-semibold">{{ ing.name }}</td>
+            <td class="text-center">
+              <span class="badge text-bg-secondary">{{ ing.cocktails | length }}</span>
+            </td>
+            <td class="text-center">
+              {% if ing.in_stock %}
+                <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> In stock</span>
+              {% else %}
+                <span class="badge text-bg-danger"><i class="bi bi-x-circle"></i> Out of stock</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <form method="post" action="{{ url_for('cocktails.toggle_ingredient', ingredient_id=ing.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% if ing.in_stock %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-eye-slash"></i> Mark out of stock
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-arrow-counterclockwise"></i> Back in stock
+                  </button>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

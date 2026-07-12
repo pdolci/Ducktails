@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit " ~ cocktail.name if cocktail else "New cocktail" }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-4">
+      {% if cocktail %}
+        <i class="bi bi-pencil brand-accent"></i> Edit {{ cocktail.name }}
+      {% else %}
+        <i class="bi bi-plus-lg brand-accent"></i> New cocktail
+      {% endif %}
+    </h1>
+
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="mb-3">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control" ~ (" is-invalid" if form.name.errors else "")) }}
+        {% for error in form.name.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.category.label(class="form-label") }}
+        {{ form.category(class="form-select" ~ (" is-invalid" if form.category.errors else "")) }}
+        {% for error in form.category.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.glass.label(class="form-label") }}
+        {{ form.glass(class="form-control" ~ (" is-invalid" if form.glass.errors else ""), placeholder="e.g. Old Fashioned glass") }}
+        {% for error in form.glass.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.ingredients.label(class="form-label") }}
+        <div class="form-text mb-1">{{ form.ingredients.description }}</div>
+        {{ form.ingredients(class="form-control" ~ (" is-invalid" if form.ingredients.errors else ""), rows=6, placeholder="45 ml gin\n15 ml lemon juice\n...") }}
+        {% for error in form.ingredients.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.garnish.label(class="form-label") }}
+        {{ form.garnish(class="form-control" ~ (" is-invalid" if form.garnish.errors else "")) }}
+        {% for error in form.garnish.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.method.label(class="form-label") }}
+        {{ form.method(class="form-control" ~ (" is-invalid" if form.method.errors else ""), rows=5) }}
+        {% for error in form.method.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-check form-switch mb-4">
+        {{ form.is_available(class="form-check-input") }}
+        {{ form.is_available.label(class="form-check-label") }}
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-warning">
+          <i class="bi bi-check-lg"></i> {{ "Save changes" if cocktail else "Create cocktail" }}
+        </button>
+        {% if cocktail %}
+          <a href="{{ url_for('cocktails.detail', cocktail_id=cocktail.id) }}" class="btn btn-outline-secondary">Cancel</a>
+        {% else %}
+          <a href="{{ url_for('cocktails.list') }}" class="btn btn-outline-secondary">Cancel</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cocktail.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('cocktails.list') }}">Cocktails</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ cocktail.name }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      <h1 class="h2 mb-0">{{ cocktail.name }}</h1>
+      {% if cocktail.is_iba %}
+        <span class="badge text-bg-info">IBA official</span>
+      {% else %}
+        <span class="badge text-bg-warning">House Creation</span>
+      {% endif %}
+      {% if not cocktail.is_available %}
+        <span class="badge text-bg-secondary">Unavailable</span>
+      {% elif cocktail.missing_ingredients %}
+        <span class="badge text-bg-danger">Out of stock</span>
+      {% endif %}
+    </div>
+    <p class="text-body-secondary mb-4">{{ cocktail.category }}</p>
+
+    {% if is_admin and cocktail.missing_ingredients %}
+      <div class="alert alert-warning d-flex align-items-start gap-2">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+          Hidden from customers — out of stock:
+          <strong>{{ cocktail.missing_ingredients | map(attribute='name') | join(', ') }}</strong>.
+          <a href="{{ url_for('cocktails.inventory') }}" class="alert-link">Manage bar stock</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-3">Glass</dt>
+          <dd class="col-sm-9">{{ cocktail.glass or "—" }}</dd>
+
+          <dt class="col-sm-3">Ingredients</dt>
+          <dd class="col-sm-9">
+            {% if cocktail.ingredient_list %}
+              <ul class="mb-0 ps-3">
+                {% for item in cocktail.ingredient_list %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              —
+            {% endif %}
+          </dd>
+
+          <dt class="col-sm-3">Garnish</dt>
+          <dd class="col-sm-9">{{ cocktail.garnish or "—" }}</dd>
+
+          <dt class="col-sm-3">Method</dt>
+          <dd class="col-sm-9 mb-0" style="white-space: pre-line;">{{ cocktail.method or "—" }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    {% if is_admin %}
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{{ url_for('cocktails.edit', cocktail_id=cocktail.id) }}" class="btn btn-outline-light">
+          <i class="bi bi-pencil"></i> Edit
+        </a>
+        <form method="post" action="{{ url_for('cocktails.toggle_available', cocktail_id=cocktail.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-outline-secondary">
+            {% if cocktail.is_available %}
+              <i class="bi bi-eye-slash"></i> Hide from users
+            {% else %}
+              <i class="bi bi-eye"></i> Make available
+            {% endif %}
+          </button>
+        </form>
+        <form method="post" action="{{ url_for('cocktails.delete', cocktail_id=cocktail.id) }}" onsubmit="return confirm('Delete {{ cocktail.name }}?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-outline-danger">
+            <i class="bi bi-trash"></i> Delete
+          </button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    {% if cocktail.is_orderable %}
+      {% if current_user_present %}
+        <div class="card">
+          <div class="card-body">
+            <h2 class="h5"><i class="bi bi-send brand-accent"></i> Request this cocktail</h2>
+            <form method="post" action="{{ url_for('requests.create') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="cocktail_id" value="{{ cocktail.id }}">
+              <div class="mb-3">
+                <label class="form-label" for="notes">Notes (optional)</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="e.g. light on ice, no garnish&hellip;"></textarea>
+              </div>
+              <button type="submit" class="btn btn-warning w-100">
+                <i class="bi bi-cup-straw"></i> Request
+              </button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="card">
+          <div class="card-body text-center">
+            <p class="mb-3">Identify yourself to request this cocktail.</p>
+            <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-warning w-100">
+              <i class="bi bi-person-circle"></i> Identify
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="card">
+        <div class="card-body text-center text-body-secondary">
+          <i class="bi bi-slash-circle d-block mb-2"></i>
+          {% if not cocktail.is_available %}
+            This cocktail is not currently available for requests.
+          {% else %}
+            Temporarily out of stock&nbsp;— some ingredients are unavailable.
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

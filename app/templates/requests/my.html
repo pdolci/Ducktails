@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}My requests{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4"><i class="bi bi-receipt brand-accent"></i> My requests</h1>
+
+{% if requests %}
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Cocktail</th>
+          <th scope="col">Status</th>
+          <th scope="col">Notes</th>
+          <th scope="col">Requested</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+          <tr>
+            <td>
+              <a href="{{ url_for('cocktails.detail', cocktail_id=req.cocktail.id) }}">{{ req.cocktail.name }}</a>
+            </td>
+            <td>
+              {% if req.status == 'pending' %}
+                <span class="badge text-bg-warning">Pending</span>
+              {% elif req.status == 'served' %}
+                <span class="badge text-bg-success">Served</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Cancelled</span>
+              {% endif %}
+            </td>
+            <td class="text-body-secondary">{{ req.notes or "—" }}</td>
+            <td class="text-body-secondary">{{ req.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>
+              {% if req.status == 'pending' %}
+                <form method="post" action="{{ url_for('requests.update_status', request_id=req.id) }}" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="cancelled">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-x-circle"></i> Cancel
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-cup-straw brand-accent" style="font-size: 2.5rem;"></i>
+      <p class="mt-3 mb-3 text-body-secondary">You haven't requested any cocktails yet.</p>
+      <a href="{{ url_for('cocktails.list') }}" class="btn btn-warning">
+        <i class="bi bi-search"></i> Browse cocktails
+      </a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

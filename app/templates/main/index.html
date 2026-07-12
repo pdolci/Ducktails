@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="hero text-white p-5 mb-4">
+  <h1 class="display-5 fw-bold">Welcome to <span class="brand-accent">Ducktails</span> 🦆🍸</h1>
+  <p class="lead mb-4">Browse the official IBA cocktails, plus our own house creations, and place your request.</p>
+  {% if not current_user %}
+    <a href="{{ url_for('auth.login') }}" class="btn btn-warning btn-lg">Identify yourself to order</a>
+  {% else %}
+    <a href="{{ url_for('cocktails.list') }}" class="btn btn-light btn-lg">Browse cocktails</a>
+  {% endif %}
+  <p class="mt-3 mb-0"><span class="badge text-bg-light fs-6">{{ available_count }} cocktails available now</span></p>
+</div>
+
+{% if stats %}
+<div class="row g-3 mb-2">
+  <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body">
+    <div class="display-6">{{ stats.cocktails }}</div><div class="text-body-secondary">Cocktails</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body">
+    <div class="display-6">{{ stats.available }}</div><div class="text-body-secondary">Orderable now</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body">
+    <div class="display-6 text-warning">{{ stats.pending }}</div><div class="text-body-secondary">Pending requests</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body">
+    <div class="display-6">{{ stats.requests }}</div><div class="text-body-secondary">Total requests</div></div></div></div>
+</div>
+<div class="row g-3 mb-2">
+  <div class="col-12 col-md-4">
+    <a href="{{ url_for('cocktails.inventory') }}" class="card text-decoration-none">
+      <div class="card-body d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-box-seam brand-accent"></i> Bar stock</span>
+        <span class="badge {% if stats.out_of_stock %}text-bg-danger{% else %}text-bg-success{% endif %} fs-6">
+          {{ stats.out_of_stock }} out of stock
+        </span>
+      </div>
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
