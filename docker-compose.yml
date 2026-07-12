@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    image: ducktails
+    ports:
+      - "8000:8000"
+    environment:
+      # CHANGE THIS in production — it signs the session cookies.
+      SECRET_KEY: "change-me-in-production"
+      # Default admin created on first seed. Change after first login.
+      ADMIN_USERNAME: "admin"
+      ADMIN_PASSWORD: "admin"
+      DATABASE_URL: "sqlite:////data/ducktails.db"
+    volumes:
+      - ducktails-data:/data
+    restart: unless-stopped
+
+volumes:
+  ducktails-data:

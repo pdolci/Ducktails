@@ -36,6 +36,28 @@ python run.py
 # → http://127.0.0.1:5000
 ```
 
+### Run with Docker
+
+The app ships with a production image (gunicorn) and a persistent SQLite volume.
+The database is seeded automatically on first start.
+
+```bash
+docker compose up --build      # → http://localhost:8000
+```
+
+Configure via environment in `docker-compose.yml` (or `-e` flags): `SECRET_KEY`
+(set a real one in production), `ADMIN_USERNAME`, `ADMIN_PASSWORD`. Data persists
+in the named volume `ducktails-data` (mounted at `/data`), so restarts keep users
+and requests. To reset everything: `docker compose down -v`.
+
+Without compose:
+
+```bash
+docker build -t ducktails .
+docker run -p 8000:8000 -v ducktails-data:/data \
+  -e SECRET_KEY=change-me -e ADMIN_PASSWORD=s3cret ducktails
+```
+
 ### Default admin
 
 | username | password |

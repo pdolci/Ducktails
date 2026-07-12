@@ -1,0 +1,4 @@
+# Normalise line endings. Shell scripts MUST stay LF or they break inside the
+# Linux container (a trailing CR makes `sh` fail with "not found" errors).
+* text=auto
+*.sh text eol=lf
