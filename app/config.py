@@ -23,3 +23,15 @@ class Config:
     # first login (or set these env vars before seeding).
     DEFAULT_ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
     DEFAULT_ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")
+
+    # --- Session cookie security ------------------------------------------
+    # Set SESSION_COOKIE_SECURE=true in production (behind HTTPS) so the
+    # session cookie is only ever sent over TLS. Kept false by default so the
+    # app still works over plain HTTP in local development.
+    SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "false").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"

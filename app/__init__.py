@@ -1,5 +1,6 @@
 """Application factory."""
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.config import Config
 from app.extensions import csrf, db
@@ -8,6 +9,11 @@ from app.extensions import csrf, db
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Behind one reverse proxy (nginx): trust its X-Forwarded-* headers so
+    # request.scheme/host reflect the original HTTPS request. Harmless in local
+    # dev (no such headers are present there).
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     db.init_app(app)
     csrf.init_app(app)
