@@ -91,7 +91,7 @@ app/
     cocktails/           list, detail, admin CRUD, availability toggle
     requests/            place request, my requests, admin manage
   templates/             Jinja2 + Bootstrap 5 (base.html + per-module folders)
-run.py                   entry point + `flask --app run seed` command
+run.py                   entry point + `seed` / `reset` CLI commands
 ```
 
 ### Data model
@@ -105,7 +105,51 @@ run.py                   entry point + `flask --app run seed` command
   to the cocktails that need it. A cocktail is *orderable* only when it is
   available **and** all its ingredients are in stock.
 
+## Maintenance
+
+Two CLI commands manage the database. Locally use `flask --app run <cmd>`; with
+Docker run them inside the container with `docker compose exec web <cmd>`.
+
+### `seed` — populate the database (idempotent)
+
+```bash
+flask --app run seed
+# Docker: docker compose exec web flask --app run seed
+```
+
+Creates the tables, the default admin, the 89 official IBA cocktails, and indexes
+their ingredients. Safe to run repeatedly: existing cocktails, the admin, and any
+manual ingredient stock flags are left untouched. Runs automatically on container
+start (see `docker/entrypoint.sh`).
+
+### `reset` — fresh-start the bar (repeatable)
+
+```bash
+flask --app run reset
+# Docker: docker compose exec web flask --app run reset
+```
+
+For starting a new event with a clean slate. It:
+
+- deletes **all requests**,
+- deletes **all customer (non-admin) users**,
+- marks **every ingredient out of stock**,
+- **keeps** admin accounts and all cocktails.
+
+After a reset the customer cocktail list is **empty** — a cocktail is *orderable*
+only when it is available **and** all its ingredients are in stock. Go to
+**Admin → Bar stock** and flag the ingredients you actually have; the preparable
+cocktails reappear automatically. These stock flags survive container restarts
+(the automatic `seed` never overwrites them).
+
+> `reset` is a targeted, data-preserving alternative to wiping the whole SQLite
+> volume with `docker compose down -v` (which also destroys cocktails and admins).
+
 ## Notes
 
 This app is designed for single-machine / trusted-LAN use (e.g. a party or a
 bar). Regular-user identification is name-only by design.
+
+Behind a reverse proxy (e.g. nginx) terminating HTTPS, the app trusts one proxy
+hop via Werkzeug `ProxyFix`. Set `SESSION_COOKIE_SECURE=true` in production so
+the session cookie is only sent over TLS.
