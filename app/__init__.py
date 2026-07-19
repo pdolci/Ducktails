@@ -18,6 +18,11 @@ def create_app(config_class=Config):
     db.init_app(app)
     csrf.init_app(app)
 
+    # Shared-secret gate (no-op unless ACCESS_CODE is configured).
+    from app.gate import init_gate
+
+    init_gate(app)
+
     # Import models so SQLAlchemy is aware of them before create_all().
     from app import models  # noqa: F401
 

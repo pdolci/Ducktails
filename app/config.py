@@ -24,6 +24,11 @@ class Config:
     DEFAULT_ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
     DEFAULT_ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")
 
+    # --- Access gate --------------------------------------------------------
+    # Shared secret required to reach the app at all, handed out as
+    # https://<host>/?k=<ACCESS_CODE> (QR code at the event). Empty = gate off.
+    ACCESS_CODE = os.environ.get("ACCESS_CODE", "")
+
     # --- Session cookie security ------------------------------------------
     # Set SESSION_COOKIE_SECURE=true in production (behind HTTPS) so the
     # session cookie is only ever sent over TLS. Kept false by default so the

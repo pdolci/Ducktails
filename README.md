@@ -145,6 +145,32 @@ cocktails reappear automatically. These stock flags survive container restarts
 > `reset` is a targeted, data-preserving alternative to wiping the whole SQLite
 > volume with `docker compose down -v` (which also destroys cocktails and admins).
 
+## Access gate (public deployments)
+
+Ordering requires no per-user authentication by design, so on a public domain
+anyone who finds the URL could place requests — and the name-only login would
+let a script create unbounded users and requests. Set `ACCESS_CODE` to gate the
+whole app behind a shared secret:
+
+```yaml
+    environment:
+      ACCESS_CODE: "a-long-random-string"
+```
+
+Hand out the link (ideally as a QR code at the event):
+
+```
+https://drinks.loonybin.it/?k=a-long-random-string
+```
+
+The code is verified in constant time, stored as a flag in the signed session
+cookie, and **stripped from the URL** by an immediate redirect so it does not
+linger in browser history or leak via `Referer`. Visitors without it get a plain
+`404` — including on the admin login, so the app does not advertise itself.
+
+Leave `ACCESS_CODE` unset (the default) to disable the gate entirely, e.g. for
+local development or a trusted-LAN deployment.
+
 ## Notes
 
 This app is designed for single-machine / trusted-LAN use (e.g. a party or a
