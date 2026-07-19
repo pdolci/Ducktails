@@ -147,6 +147,24 @@ cocktails reappear automatically. These stock flags survive container restarts
 > `reset` is a targeted, data-preserving alternative to wiping the whole SQLite
 > volume with `docker compose down -v` (which also destroys cocktails and admins).
 
+### `purge-users` — clear the guest list only (repeatable)
+
+```bash
+flask --app run purge-users
+# Docker: docker compose exec web flask --app run purge-users
+```
+
+Deletes all customer (non-admin) users and their requests, and nothing else —
+admins, cocktails and **the ingredient stock flags** are left untouched. Use this
+when you want a clean guest list but the bar is already set up and you don't want
+to re-flag every ingredient.
+
+| | `reset` | `purge-users` |
+|---|---|---|
+| Customer users + their requests | deleted | deleted |
+| Ingredient stock flags | all set to out of stock | **preserved** |
+| Admins, cocktails | kept | kept |
+
 ## Access gate (public deployments)
 
 Ordering requires no per-user authentication by design, so on a public domain

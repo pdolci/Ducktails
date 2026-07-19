@@ -2,8 +2,9 @@
 
 Usage:
     python run.py            # start dev server on http://127.0.0.1:5000
-    flask --app run seed     # (re)seed the database with IBA cocktails + admin
-    flask --app run reset    # clear requests + customer users, all ingredients OFF
+    flask --app run seed         # (re)seed the database with IBA cocktails + admin
+    flask --app run reset        # clear requests + customer users, all ingredients OFF
+    flask --app run purge-users  # clear customer users only, keep the bar stock
 """
 from app import create_app
 from app.extensions import db
@@ -38,6 +39,28 @@ def reset_command():
         f"Reset done - removed {n_requests} request(s) and {n_users} customer "
         f"user(s); marked {n_ingredients} ingredient(s) out of stock; "
         f"kept {admins} admin(s) and all cocktails."
+    )
+
+
+@app.cli.command("purge-users")
+def purge_users_command():
+    """Delete all customer (non-admin) users and their requests.
+
+    Narrower than `reset`: admins, cocktails and — importantly — the ingredient
+    stock flags are left untouched, so a bar you already set up stays ready.
+    Safe to run repeatedly.
+    """
+    from app.models import User
+
+    users = User.query.filter_by(is_admin=False).all()
+    n_requests = sum(len(user.requests) for user in users)
+    for user in users:
+        db.session.delete(user)  # cascades to that user's requests
+    db.session.commit()
+
+    print(
+        f"Purged {len(users)} customer user(s) and {n_requests} request(s). "
+        f"Admins, cocktails and ingredient stock left untouched."
     )
 
 
