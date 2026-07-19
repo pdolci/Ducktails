@@ -96,7 +96,9 @@ run.py                   entry point + `seed` / `reset` CLI commands
 
 ### Data model
 
-- **User** — `name` (unique), `is_admin`, optional `password_hash`.
+- **User** — `name` (unique), `is_admin`, optional `password_hash`. Names are
+  matched **case-insensitively** (`Paolo` = `paolo` = `pAoLo`); the spelling
+  typed first is kept for display.
 - **Cocktail** — `name`, `category`, `glass`, `ingredients`, `garnish`,
   `method`, `is_iba`, `is_available`.
 - **Request** — links a user to a cocktail with a `status`

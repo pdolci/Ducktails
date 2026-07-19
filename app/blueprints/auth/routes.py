@@ -24,7 +24,8 @@ def login():
     form = NameForm()
     if form.validate_on_submit():
         name = form.name.data.strip()
-        existing = User.query.filter_by(name=name).first()
+        # Case-insensitive: 'Paolo', 'paolo' and 'pAoLo' are the same person.
+        existing = User.find_by_name(name)
         if existing and existing.is_admin:
             flash("That name belongs to an administrator account. Please use the admin login.", "warning")
             return redirect(url_for("auth.admin_login"))
@@ -52,8 +53,8 @@ def admin_login():
     if form.validate_on_submit():
         username = form.username.data.strip()
         password = form.password.data
-        user = User.query.filter_by(name=username, is_admin=True).first()
-        if user and user.check_password(password):
+        user = User.find_by_name(username)
+        if user and user.is_admin and user.check_password(password):
             login_user(user)
             flash(f"Welcome back, {user.name}!", "success")
             return redirect(url_for("main.index"))

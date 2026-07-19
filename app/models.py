@@ -53,6 +53,22 @@ class User(db.Model):
         "Request", back_populates="user", cascade="all, delete-orphan"
     )
 
+    @classmethod
+    def find_by_name(cls, name):
+        """Look up a user by name, case-insensitively.
+
+        'Paolo', 'paolo' and 'pAoLo' all resolve to the same account. The
+        originally typed spelling is kept for display. Ordered by id so the
+        oldest match always wins if legacy duplicates exist.
+        """
+        if not name:
+            return None
+        return (
+            cls.query.filter(db.func.lower(cls.name) == name.strip().lower())
+            .order_by(cls.id)
+            .first()
+        )
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 

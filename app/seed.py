@@ -63,7 +63,7 @@ def seed_cocktails():
 
 def seed_admin():
     username = current_app.config["DEFAULT_ADMIN_USERNAME"]
-    if User.query.filter_by(name=username).first():
+    if User.find_by_name(username):
         print(f"Admin '{username}' already exists.")
         return
     admin = User(name=username, is_admin=True)
