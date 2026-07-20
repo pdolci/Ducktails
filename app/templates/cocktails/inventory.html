@@ -5,9 +5,23 @@
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
   <h1 class="h3 mb-0"><i class="bi bi-box-seam brand-accent"></i> Bar stock</h1>
-  <a href="{{ url_for('cocktails.list') }}" class="btn btn-outline-light btn-sm">
-    <i class="bi bi-arrow-left"></i> Back to cocktails
-  </a>
+  <div class="d-flex gap-2">
+    <form method="post" action="{{ url_for('cocktails.mark_all_in_stock') }}" onsubmit="return confirm('Mark ALL ingredients in stock?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-check-circle"></i> Mark all in stock
+      </button>
+    </form>
+    <form method="post" action="{{ url_for('cocktails.mark_all_out_of_stock') }}" onsubmit="return confirm('Mark ALL ingredients out of stock?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-x-circle"></i> Mark all out of stock
+      </button>
+    </form>
+    <a href="{{ url_for('cocktails.list') }}" class="btn btn-outline-light btn-sm">
+      <i class="bi bi-arrow-left"></i> Back to cocktails
+    </a>
+  </div>
 </div>
 <p class="text-body-secondary">
   Mark an ingredient <strong>out of stock</strong> and every cocktail that needs it
@@ -15,23 +29,24 @@
 </p>
 
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-4"><div class="card text-center"><div class="card-body py-3">
-    <div class="h4 mb-0">{{ total }}</div><div class="text-body-secondary small">Ingredients</div></div></div></div>
-  <div class="col-6 col-md-4"><div class="card text-center"><div class="card-body py-3">
+  <div class="col-6 col-md-4"><a href="{{ url_for('cocktails.inventory') }}" class="card text-center text-decoration-none{% if not stock %} border-warning{% endif %}"><div class="card-body py-3">
+    <div class="h4 mb-0">{{ total }}</div><div class="text-body-secondary small">All ingredients</div></div></a></div>
+  <div class="col-6 col-md-4"><a href="{{ url_for('cocktails.inventory', stock='out') }}" class="card text-center text-decoration-none{% if stock == 'out' %} border-warning{% endif %}"><div class="card-body py-3">
     <div class="h4 mb-0 {% if out_of_stock_count %}text-danger{% endif %}">{{ out_of_stock_count }}</div>
-    <div class="text-body-secondary small">Out of stock</div></div></div></div>
-  <div class="col-12 col-md-4"><div class="card text-center"><div class="card-body py-3">
-    <div class="h4 mb-0 {% if hidden_count %}text-warning{% endif %}">{{ hidden_count }}</div>
-    <div class="text-body-secondary small">Cocktails hidden by stock</div></div></div></div>
+    <div class="text-body-secondary small">Out of stock</div></div></a></div>
+  <div class="col-6 col-md-4"><a href="{{ url_for('cocktails.inventory', stock='in') }}" class="card text-center text-decoration-none{% if stock == 'in' %} border-warning{% endif %}"><div class="card-body py-3">
+    <div class="h4 mb-0 {% if in_stock_count %}text-success{% endif %}">{{ in_stock_count }}</div>
+    <div class="text-body-secondary small">In stock</div></div></a></div>
 </div>
 
 <form method="get" class="row g-2 mb-3">
+  {% if stock %}<input type="hidden" name="stock" value="{{ stock }}">{% endif %}
   <div class="col-8 col-sm-6 col-md-5">
     <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search ingredient&hellip;">
   </div>
   <div class="col-4 col-sm-3 d-flex gap-2">
     <button type="submit" class="btn btn-outline-light"><i class="bi bi-search"></i></button>
-    {% if q %}
+    {% if q or stock %}
       <a href="{{ url_for('cocktails.inventory') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
     {% endif %}
   </div>
@@ -48,6 +63,7 @@
       <thead>
         <tr>
           <th>Ingredient</th>
+          <th>Group</th>
           <th class="text-center">Used in</th>
           <th class="text-center">Status</th>
           <th class="text-end">Action</th>
@@ -55,27 +71,36 @@
       </thead>
       <tbody>
         {% for ing in ingredients %}
-          <tr class="{% if not ing.in_stock %}table-danger{% endif %}">
+          <tr id="ing-{{ ing.id }}" class="{% if not ing.in_stock %}table-danger{% endif %}">
             <td class="fw-semibold">{{ ing.name }}</td>
+            <td>
+              <form method="post" action="{{ url_for('cocktails.set_ingredient_group', ingredient_id=ing.id) }}" class="d-flex gap-1 align-items-center">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="group" value="{{ ing.group or '' }}" list="group-options" class="form-control form-control-sm" style="width:110px" placeholder="—">
+                <button type="submit" class="btn btn-sm btn-outline-light" title="Save group"><i class="bi bi-check-lg"></i></button>
+              </form>
+            </td>
             <td class="text-center">
-              <span class="badge text-bg-secondary">{{ ing.cocktails | length }}</span>
+              <span class="badge text-bg-secondary" data-bs-toggle="tooltip" data-bs-trigger="hover focus" data-bs-title="{{ ing.cocktails | map(attribute='name') | join(', ') }}">{{ ing.cocktails | length }}</span>
             </td>
             <td class="text-center">
               {% if ing.in_stock %}
-                <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> In stock</span>
+                <span class="badge text-bg-success status-badge"><i class="bi bi-check-circle"></i> In stock</span>
+              {% elif ing.is_satisfied %}
+                <span class="badge text-bg-info status-badge"><i class="bi bi-link-45deg"></i> Via group</span>
               {% else %}
-                <span class="badge text-bg-danger"><i class="bi bi-x-circle"></i> Out of stock</span>
+                <span class="badge text-bg-danger status-badge"><i class="bi bi-x-circle"></i> Out of stock</span>
               {% endif %}
             </td>
             <td class="text-end">
               <form method="post" action="{{ url_for('cocktails.toggle_ingredient', ingredient_id=ing.id) }}" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 {% if ing.in_stock %}
-                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" data-toggle-id="{{ ing.id }}">
                     <i class="bi bi-eye-slash"></i> Mark out of stock
                   </button>
                 {% else %}
-                  <button type="submit" class="btn btn-sm btn-outline-success">
+                  <button type="submit" class="btn btn-sm btn-outline-success" data-toggle-id="{{ ing.id }}">
                     <i class="bi bi-arrow-counterclockwise"></i> Back in stock
                   </button>
                 {% endif %}
@@ -86,5 +111,60 @@
       </tbody>
     </table>
   </div>
+  <datalist id="group-options">
+    {% for g in groups %}<option value="{{ g }}">{% endfor %}
+  </datalist>
 {% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-toggle-id]');
+  if (!btn) return;
+  e.preventDefault();
+  const form = btn.closest('form');
+  fetch(form.action, {
+    method: 'POST',
+    headers: {'X-Requested-With': 'fetch'},
+    body: new FormData(form)
+  }).then(r => r.json()).then(data => {
+    if (!data.ok) return;
+    const row = btn.closest('tr');
+    row.classList.toggle('table-danger', !data.in_stock);
+    const badge = row.querySelector('.status-badge');
+    if (data.in_stock) {
+      badge.className = 'badge text-bg-success status-badge';
+      badge.innerHTML = '<i class="bi bi-check-circle"></i> In stock';
+      btn.className = 'btn btn-sm btn-outline-danger';
+      btn.innerHTML = '<i class="bi bi-eye-slash"></i> Mark out of stock';
+    } else {
+      badge.className = 'badge text-bg-danger status-badge';
+      badge.innerHTML = '<i class="bi bi-x-circle"></i> Out of stock';
+      btn.className = 'btn btn-sm btn-outline-success';
+      btn.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i> Back in stock';
+    }
+    // Update sibling rows in the same group
+    if (data.group) {
+      document.querySelectorAll('input[name="group"]').forEach(function(input) {
+        if (input.value !== data.group) return;
+        const siblingRow = input.closest('tr');
+        if (siblingRow === row) return;
+        // Only update rows that are individually out of stock
+        if (!siblingRow.classList.contains('table-danger')) return;
+        const sibBadge = siblingRow.querySelector('.status-badge');
+        if (data.group_satisfied) {
+          sibBadge.className = 'badge text-bg-info status-badge';
+          sibBadge.innerHTML = '<i class="bi bi-link-45deg"></i> Via group';
+        } else {
+          sibBadge.className = 'badge text-bg-danger status-badge';
+          sibBadge.innerHTML = '<i class="bi bi-x-circle"></i> Out of stock';
+        }
+      });
+    }
+  });
+});
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+  new bootstrap.Tooltip(el);
+});
+</script>
 {% endblock %}

@@ -23,7 +23,7 @@ IBA_CATEGORIES = [
     CATEGORY_CONTEMPORARY,
     CATEGORY_NEW_ERA,
 ]
-ALL_CATEGORIES = IBA_CATEGORIES + [CATEGORY_CUSTOM]
+ALL_CATEGORIES = [CATEGORY_CUSTOM] + IBA_CATEGORIES
 
 # --- Request statuses --------------------------------------------------------
 STATUS_PENDING = "pending"
@@ -116,8 +116,11 @@ class Cocktail(db.Model):
 
     @property
     def missing_ingredients(self):
-        """Required ingredients that are currently out of stock."""
-        return [ing for ing in self.required_ingredients if not ing.in_stock]
+        """Required ingredients that are currently unavailable.
+
+        An ingredient is satisfied if it is in_stock OR if it belongs to a
+        group where at least one other member is in_stock."""
+        return [ing for ing in self.required_ingredients if not ing.is_satisfied]
 
     @property
     def is_orderable(self):
@@ -154,10 +157,22 @@ class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
     in_stock = db.Column(db.Boolean, default=True, nullable=False)
+    # Optional stock group. If set, this ingredient is considered in-stock
+    # whenever ANY ingredient sharing the same group is in-stock.
+    group = db.Column(db.String(120), nullable=True)
 
     cocktails = db.relationship(
         "Cocktail", secondary=cocktail_ingredients, back_populates="required_ingredients"
     )
+
+    @property
+    def is_satisfied(self):
+        """Is this ingredient available (directly or via its group)?"""
+        if self.in_stock:
+            return True
+        if self.group:
+            return Ingredient.query.filter_by(group=self.group, in_stock=True).first() is not None
+        return False
 
     def __repr__(self):
         return f"<Ingredient {self.name}{'' if self.in_stock else ' (out)'}>"

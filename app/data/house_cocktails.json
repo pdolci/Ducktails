@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Upside Down",
+    "glass": "Highball",
+    "ingredients": ["30 ml Gin", "30 ml Punt e Mes", "30 ml Martini Bitter"],
+    "garnish": "Lime wedge",
+    "method": "Build into ice-filled glass, stir gently."
+  },
+  {
+    "name": "Defatigante",
+    "glass": "Tumbler",
+    "ingredients": ["45 ml Vodka", "25 ml Campari", "50 ml Grapefruit Juice", "Soda Water to top"],
+    "garnish": "Mint leaf",
+    "method": "Build into ice-filled glass, stir gently."
+  }
+]
