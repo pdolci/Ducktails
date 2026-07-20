@@ -35,7 +35,10 @@ def list():
 
     # Customers only see cocktails that are available AND fully in stock.
     # Admins see everything (with badges for hidden / missing-ingredient ones).
+    orderable = request.args.get("orderable", "").strip()
     if not is_admin:
+        cocktails = [c for c in cocktails if c.is_orderable]
+    elif orderable:
         cocktails = [c for c in cocktails if c.is_orderable]
 
     grouped = OrderedDict((cat, []) for cat in ALL_CATEGORIES)
@@ -50,6 +53,7 @@ def list():
         cocktails=cocktails,
         q=q,
         category=category,
+        orderable=orderable,
         all_categories=ALL_CATEGORIES,
         is_admin=is_admin,
     )
@@ -163,26 +167,58 @@ def toggle_available(cocktail_id):
 @admin_required
 def inventory():
     q = request.args.get("q", "").strip()
+    stock = request.args.get("stock", "").strip()
     query = Ingredient.query
     if q:
         query = query.filter(Ingredient.name.ilike(f"%{q}%"))
+    if stock == "in":
+        query = query.filter_by(in_stock=True)
+    elif stock == "out":
+        query = query.filter_by(in_stock=False)
     # Out-of-stock first, then alphabetical.
     ingredients = query.order_by(Ingredient.in_stock.asc(), Ingredient.name.asc()).all()
 
     out_of_stock_count = Ingredient.query.filter_by(in_stock=False).count()
+    in_stock_count = Ingredient.query.filter_by(in_stock=True).count()
     hidden = [
         c
         for c in Cocktail.query.filter_by(is_available=True).all()
         if c.missing_ingredients
     ]
+    groups = sorted(
+        g for (g,) in db.session.query(Ingredient.group).filter(
+            Ingredient.group.isnot(None)
+        ).distinct()
+    )
     return render_template(
         "cocktails/inventory.html",
         ingredients=ingredients,
         q=q,
+        stock=stock,
         total=Ingredient.query.count(),
+        in_stock_count=in_stock_count,
         out_of_stock_count=out_of_stock_count,
         hidden_count=len(hidden),
+        groups=groups,
     )
+
+
+@bp.route("/ingredients/mark-all-out", methods=["POST"])
+@admin_required
+def mark_all_out_of_stock():
+    updated = Ingredient.query.filter_by(in_stock=True).update({"in_stock": False})
+    db.session.commit()
+    flash(f"All {updated} ingredient(s) marked out of stock.", "success")
+    return redirect(url_for("cocktails.inventory"))
+
+
+@bp.route("/ingredients/mark-all-in", methods=["POST"])
+@admin_required
+def mark_all_in_stock():
+    updated = Ingredient.query.filter_by(in_stock=False).update({"in_stock": True})
+    db.session.commit()
+    flash(f"All {updated} ingredient(s) marked in stock.", "success")
+    return redirect(url_for("cocktails.inventory"))
 
 
 @bp.route("/ingredients/<int:ingredient_id>/toggle", methods=["POST"])
@@ -196,5 +232,28 @@ def toggle_ingredient(ingredient_id):
     msg = f'"{ingredient.name}" marked {state}.'
     if not ingredient.in_stock and affected:
         msg += f" {affected} cocktail(s) hidden from customers."
+    if request.headers.get("X-Requested-With") == "fetch":
+        group = ingredient.group
+        group_satisfied = False
+        if group:
+            group_satisfied = Ingredient.query.filter_by(group=group, in_stock=True).first() is not None
+        return {"ok": True, "in_stock": ingredient.in_stock, "msg": msg,
+                "group": group or "", "group_satisfied": group_satisfied}
     flash(msg, "success")
-    return redirect(request.referrer or url_for("cocktails.inventory"))
+    return redirect(url_for("cocktails.inventory"))
+
+
+@bp.route("/ingredients/<int:ingredient_id>/group", methods=["POST"])
+@admin_required
+def set_ingredient_group(ingredient_id):
+    ingredient = Ingredient.query.get_or_404(ingredient_id)
+    group = (request.form.get("group") or "").strip() or None
+    ingredient.group = group
+    db.session.commit()
+    if request.headers.get("X-Requested-With") == "fetch":
+        return {"ok": True, "group": group or ""}
+    if group:
+        flash(f'"{ingredient.name}" assigned to group "{group}".', "success")
+    else:
+        flash(f'"{ingredient.name}" group cleared.', "success")
+    return redirect(url_for("cocktails.inventory"))

@@ -14,14 +14,14 @@
 
 {% if stats %}
 <div class="row g-3 mb-2">
-  <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body">
-    <div class="display-6">{{ stats.cocktails }}</div><div class="text-body-secondary">Cocktails</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body">
-    <div class="display-6">{{ stats.available }}</div><div class="text-body-secondary">Orderable now</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body">
-    <div class="display-6 text-warning">{{ stats.pending }}</div><div class="text-body-secondary">Pending requests</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body">
-    <div class="display-6">{{ stats.requests }}</div><div class="text-body-secondary">Total requests</div></div></div></div>
+  <div class="col-6 col-md-3"><a href="{{ url_for('cocktails.list') }}" class="card text-center text-decoration-none"><div class="card-body">
+    <div class="display-6">{{ stats.cocktails }}</div><div class="text-body-secondary">Cocktails</div></div></a></div>
+  <div class="col-6 col-md-3"><a href="{{ url_for('cocktails.list', orderable='1') }}" class="card text-center text-decoration-none"><div class="card-body">
+    <div class="display-6">{{ stats.available }}</div><div class="text-body-secondary">Orderable now</div></div></a></div>
+  <div class="col-6 col-md-3"><a href="{{ url_for('requests.manage', status='pending') }}" class="card text-center text-decoration-none"><div class="card-body">
+    <div class="display-6 text-warning">{{ stats.pending }}</div><div class="text-body-secondary">Pending requests</div></div></a></div>
+  <div class="col-6 col-md-3"><a href="{{ url_for('requests.manage') }}" class="card text-center text-decoration-none"><div class="card-body">
+    <div class="display-6">{{ stats.requests }}</div><div class="text-body-secondary">Total requests</div></div></a></div>
 </div>
 <div class="row g-3 mb-2">
   <div class="col-12 col-md-4">

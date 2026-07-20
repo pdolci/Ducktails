@@ -1,0 +1,43 @@
+{
+  "Rum": [
+    "White Rum",
+    "Dark Rum",
+    "Gold Rum",
+    "Bacardi White Rum",
+    "Overproof Rum"
+  ],
+  "Whiskey": [
+    "Bourbon Whiskey",
+    "Rye Whiskey",
+    "Bourbon or Rye Whiskey",
+    "Scotch Whisky",
+    "Blended Scotch Whisky",
+    "Islay Single Malt Scotch",
+    "Irish Whiskey",
+    "Rye or Canadian Whisky"
+  ],
+  "Gin": [
+    "Gin",
+    "Old Tom Gin"
+  ],
+  "Lime": [
+    "Lime Juice",
+    "Half a Lime"
+  ],
+  "Vermouth": [
+    "Sweet Vermouth",
+    "Dry Vermouth"
+  ],
+  "Orange Liqueur": [
+    "Triple Sec",
+    "Orange Curacao"
+  ],
+  "Coffee": [
+    "Espresso",
+    "Hot Coffee"
+  ],
+  "Prosecco": [
+    "Prosecco",
+    "Sparkling Wine"
+  ]
+}

@@ -70,7 +70,7 @@ def get_or_create_ingredient(name):
     existing = Ingredient.query.filter(db.func.lower(Ingredient.name) == key).first()
     if existing:
         return existing
-    ing = Ingredient(name=name, in_stock=True)
+    ing = Ingredient(name=name, in_stock=False)
     db.session.add(ing)
     db.session.flush()  # so later lookups in the same pass find it
     return ing

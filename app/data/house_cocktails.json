@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Upside Down",
+    "glass": "Highball",
+    "ingredients": ["30 ml Gin", "30 ml Punt e Mes", "30 ml Martini Bitter"],
+    "garnish": "Lime wedge",
+    "method": "Build into ice-filled glass, stir gently."
+  },
+  {
+    "name": "Defatigante",
+    "glass": "Tumbler",
+    "ingredients": ["45 ml Vodka", "25 ml Campari", "50 ml Grapefruit Juice", "Soda Water to top"],
+    "garnish": "Mint leaf",
+    "method": "Build into ice-filled glass, stir gently."
+  },
+  {
+    "name": "Pink Gin",
+    "glass": "Coupe",
+    "ingredients": ["60 ml Plymouth Gin", "4 dashes Angostura Bitters", "15ml Water"],
+    "garnish": ": A wide strip of lemon peel",
+    "method": "Coat the glass: Dash the Angostura bitters into an empty, chilled cocktail glass. Swirl the bitters around to coat the inside completely, then discard any excess liquid. Stir the spirit: In a separate mixing glass filled with ice, combine the gin and water. Stir for about 30 seconds until freezing cold.Strain: Strain the chilled gin into your bitters-coated glass.Express: Twist the lemon peel over the top to release its citrus oils, then drop it in"
+  } 
+]
