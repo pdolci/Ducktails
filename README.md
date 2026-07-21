@@ -199,3 +199,13 @@ bar). Regular-user identification is name-only by design.
 Behind a reverse proxy (e.g. nginx) terminating HTTPS, the app trusts one proxy
 hop via Werkzeug `ProxyFix`. Set `SESSION_COOKIE_SECURE=true` in production so
 the session cookie is only sent over TLS.
+
+Newly parsed ingredients are seeded **out of stock**, so after a fresh `seed`
+the customer list is empty until an admin flags what's available in **Bar stock**
+(see the `reset` command for the same effect on an existing database).
+
+**Schema upgrades:** the app has no Alembic setup; instead `app/migrations.py`
+runs a tiny additive migration on every startup that `ALTER TABLE`s any missing
+columns onto existing tables. This lets a running deployment pick up model
+changes (e.g. the `ingredients.group` column) with a plain
+`git pull && docker compose up -d --build`, without wiping the database.

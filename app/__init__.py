@@ -44,8 +44,11 @@ def create_app(config_class=Config):
     def inject_current_user():
         return {"current_user": get_current_user()}
 
-    # --- Create tables on first run ----------------------------------------
+    # --- Create tables + apply additive migrations on startup --------------
     with app.app_context():
         db.create_all()
+        from app.migrations import ensure_schema
+
+        ensure_schema()
 
     return app
