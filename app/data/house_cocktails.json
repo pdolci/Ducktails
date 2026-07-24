@@ -19,5 +19,40 @@
     "ingredients": ["60 ml Plymouth Gin", "4 dashes Angostura Bitters", "15ml Water"],
     "garnish": "A wide strip of lemon peel",
     "method": "Coat the glass: Dash the Angostura bitters into an empty, chilled cocktail glass. Swirl the bitters around to coat the inside completely, then discard any excess liquid. Stir the spirit: In a separate mixing glass filled with ice, combine the gin and water. Stir for about 30 seconds until freezing cold.Strain: Strain the chilled gin into your bitters-coated glass.Express: Twist the lemon peel over the top to release its citrus oils, then drop it in"
-  } 
+  },
+  {
+    "name": "Campari Spritz",
+    "glass": "Wine Glass",
+    "ingredients": ["60 ml Campari", "90 ml Prosecco", "Soda Water to top"],
+    "garnish": "Orange slice",
+    "method": "Build into ice-filled wine glass, stir gently."
+  },
+  {
+    "name": "Campari Shakerato",
+    "glass": "Coupe",
+    "ingredients": ["90 ml Campari"],
+    "garnish": "lemon twist",
+    "method": "Shake Campari with ice and strain into a chilled coupe glass. Garnish with a lemon twist."
+  },
+  {
+    "name": "Negroni Sbagliato",
+    "glass": "Highball",
+    "ingredients": ["30 ml Campari", "30 ml Sweet Vermouth", "Prosecco to top"],
+    "garnish": "Orange slice",
+    "method": "Build into ice-filled highball glass, stir gently."
+  },
+  {
+    "name": "Caipiroska",
+    "glass": "Tumbler",
+    "ingredients": ["60 ml Vodka", "1 lime (cut into wedges)", "2 tsp sugar"],
+    "garnish": "Lime wheel",
+    "method": "Muddle the lime wedges with sugar in a glass. Fill the glass with ice, add vodka, and stir well."
+  },
+  {
+    "name": "Gin Tonic",
+    "glass": "Highball",
+    "ingredients": ["60 ml Gin", "Tonic Water to top"],
+    "garnish": "Lime wedge",
+    "method": "Build into ice-filled highball glass, stir gently."
+  }
 ]
